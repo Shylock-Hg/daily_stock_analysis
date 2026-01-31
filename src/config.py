@@ -39,13 +39,15 @@ def _get_random_china_stocks() -> List[str]:
     print("未配置STOCK_LIST，正在随机选择100只中国A股...")
 
     # 获取A股实时行情数据（包含所有A股）
-    df = ak.stock_zh_a_spot_em()
+    stock_info = ak.stock_info_a_code_name()
+    stock_info = stock_info[~stock_info['code'].str.startswith('4')]  # 剔除两网及退市（4开头）
+    stock_info = stock_info[~stock_info['code'].str.startswith('8')]  # 剔除北交所部分（可选）
 
-    if df.empty:
+    if stock_info.empty:
         raise "Cannot fetch A-share data from akshare."
 
     # 提取股票代码列
-    all_stocks = df['代码'].tolist()
+    all_stocks = stock_info['code'].tolist()
 
     # 随机选择100只股票
     selected_stocks = random.sample(all_stocks, 10)
