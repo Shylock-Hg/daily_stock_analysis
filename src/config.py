@@ -307,6 +307,7 @@ class Config:
         ]
 
         # 如果没有配置，随机选择100只中国A股
+        print("DEBUG POINT: stock_list {}", stock_list)
         if not stock_list or len(stock_list) == 0:
             stock_list = _get_random_china_stocks()
 
