@@ -307,7 +307,7 @@ class Config:
         ]
 
         # 如果没有配置，随机选择100只中国A股
-        if not stock_list:
+        if not stock_list or len(stock_list) == 0:
             stock_list = _get_random_china_stocks()
 
         # 解析搜索引擎 API Keys（支持多个 key，逗号分隔）
@@ -447,7 +447,7 @@ class Config:
             if code.strip()
         ]
 
-        if not stock_list:
+        if not stock_list or len(stock_list) == 0:
             stock_list = _get_random_china_stocks()
 
         self.stock_list = stock_list
