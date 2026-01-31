@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 from dotenv import load_dotenv, dotenv_values
 from dataclasses import dataclass, field
+import random
 
 
 def setup_env(override: bool = False):
@@ -37,17 +38,46 @@ def setup_env(override: bool = False):
     load_dotenv(dotenv_path=env_path, override=override)
 
 
+def _get_random_china_stocks() -> List[str]:
+    """
+    随机获取100只中国A股代码
+
+    当环境变量STOCK_LIST未设置时，使用akshare获取所有A股数据，
+    并随机选择100只股票作为默认分析列表。
+
+    Returns:
+        List[str]: 包含100只A股代码的列表
+    """
+    import akshare as ak
+    print("未配置STOCK_LIST，正在随机选择100只中国A股...")
+
+    # 获取A股实时行情数据（包含所有A股）
+    df = ak.stock_zh_a_spot_em()
+
+    if df.empty:
+        raise "Cannot fetch A-share data from akshare."
+
+    # 提取股票代码列
+    all_stocks = df['代码'].tolist()
+
+    # 随机选择100只股票
+    selected_stocks = random.sample(all_stocks, 10)
+
+    print(f"成功随机选择{len(selected_stocks)}只A股")
+    return selected_stocks
+
+
 @dataclass
 class Config:
     """
     系统配置类 - 单例模式
-    
+
     设计说明：
     - 使用 dataclass 简化配置属性定义
     - 所有配置项从环境变量读取，支持默认值
     - 类方法 get_instance() 实现单例访问
     """
-    
+
     # === 自选股配置 ===
     stock_list: List[str] = field(default_factory=list)
 
@@ -58,7 +88,7 @@ class Config:
 
     # === 数据源 API Token ===
     tushare_token: Optional[str] = None
-    
+
     # === AI 分析配置 ===
     gemini_api_key: Optional[str] = None
     gemini_model: str = "gemini-3-flash-preview"  # 主模型
@@ -82,7 +112,7 @@ class Config:
     openai_model: str = "gpt-4o-mini"  # OpenAI 兼容模型名称
     openai_vision_model: Optional[str] = None  # Vision 专用模型（可选，不配置则用 openai_model；部分模型如 DeepSeek 不支持图像）
     openai_temperature: float = 0.7  # OpenAI 温度参数（0.0-2.0，默认0.7）
-    
+
     # === 搜索引擎配置（支持多 Key 负载均衡）===
     bocha_api_keys: List[str] = field(default_factory=list)  # Bocha API Keys
     tavily_api_keys: List[str] = field(default_factory=list)  # Tavily API Keys
@@ -94,13 +124,13 @@ class Config:
     bias_threshold: float = 5.0  # 乖离率阈值（%），超过此值提示不追高
 
     # === 通知配置（可同时配置多个，全部推送）===
-    
+
     # 企业微信 Webhook
     wechat_webhook_url: Optional[str] = None
-    
+
     # 飞书 Webhook
     feishu_webhook_url: Optional[str] = None
-    
+
     # Telegram 配置（需要同时配置 Bot Token 和 Chat ID）
     telegram_bot_token: Optional[str] = None  # Bot Token（@BotFather 获取）
     telegram_chat_id: Optional[str] = None  # Chat ID
@@ -119,7 +149,7 @@ class Config:
     # Pushover 配置（手机/桌面推送通知）
     pushover_user_key: Optional[str] = None  # 用户 Key（https://pushover.net 获取）
     pushover_api_token: Optional[str] = None  # 应用 API Token
-    
+
     # 自定义 Webhook（支持多个，逗号分隔）
     # 适用于：钉钉、Discord、Slack、自建服务等任意支持 POST JSON 的 Webhook
     custom_webhook_urls: List[str] = field(default_factory=list)
@@ -181,13 +211,13 @@ class Config:
     # === 日志配置 ===
     log_dir: str = "./logs"  # 日志文件目录
     log_level: str = "INFO"  # 日志级别
-    
+
     # === 系统配置 ===
     max_workers: int = 3  # 低并发防封禁
     debug: bool = False
     http_proxy: Optional[str] = None  # HTTP 代理 (例如: http://127.0.0.1:10809)
     https_proxy: Optional[str] = None # HTTPS 代理
-    
+
     # === 定时任务配置 ===
     schedule_enabled: bool = False            # 是否启用定时任务
     schedule_time: str = "18:00"              # 每日推送时间（HH:MM 格式）
@@ -220,57 +250,57 @@ class Config:
     # Akshare 请求间隔范围（秒）
     akshare_sleep_min: float = 2.0
     akshare_sleep_max: float = 5.0
-    
+
     # Tushare 每分钟最大请求数（免费配额）
     tushare_rate_limit_per_minute: int = 80
-    
+
     # 重试配置
     max_retries: int = 3
     retry_base_delay: float = 1.0
     retry_max_delay: float = 30.0
-    
+
     # === WebUI 配置 ===
     webui_enabled: bool = False
     webui_host: str = "127.0.0.1"
     webui_port: int = 8000
-    
+
     # === 机器人配置 ===
     bot_enabled: bool = True              # 是否启用机器人功能
     bot_command_prefix: str = "/"         # 命令前缀
     bot_rate_limit_requests: int = 10     # 频率限制：窗口内最大请求数
     bot_rate_limit_window: int = 60       # 频率限制：窗口时间（秒）
     bot_admin_users: List[str] = field(default_factory=list)  # 管理员用户 ID 列表
-    
+
     # 飞书机器人（事件订阅）- 已有 feishu_app_id, feishu_app_secret
     feishu_verification_token: Optional[str] = None  # 事件订阅验证 Token
     feishu_encrypt_key: Optional[str] = None         # 消息加密密钥（可选）
     feishu_stream_enabled: bool = False              # 是否启用 Stream 长连接模式（无需公网IP）
-    
+
     # 钉钉机器人
     dingtalk_app_key: Optional[str] = None      # 应用 AppKey
     dingtalk_app_secret: Optional[str] = None   # 应用 AppSecret
     dingtalk_stream_enabled: bool = False       # 是否启用 Stream 模式（无需公网IP）
-    
+
     # 企业微信机器人（回调模式）
     wecom_corpid: Optional[str] = None              # 企业 ID
     wecom_token: Optional[str] = None               # 回调 Token
     wecom_encoding_aes_key: Optional[str] = None    # 消息加解密密钥
     wecom_agent_id: Optional[str] = None            # 应用 AgentId
-    
+
     # Telegram 机器人 - 已有 telegram_bot_token, telegram_chat_id
     telegram_webhook_secret: Optional[str] = None   # Webhook 密钥
-    
+
     # Discord 机器人扩展配置
     discord_bot_status: str = "A股智能分析 | /help"  # 机器人状态信息
-    
+
     # 单例实例存储
     _instance: Optional['Config'] = None
-    
+
     @classmethod
     def get_instance(cls) -> 'Config':
         """
         获取配置单例实例
-        
+
         单例模式确保：
         1. 全局只有一个配置实例
         2. 配置只从环境变量加载一次
@@ -279,12 +309,12 @@ class Config:
         if cls._instance is None:
             cls._instance = cls._load_from_env()
         return cls._instance
-    
+
     @classmethod
     def _load_from_env(cls) -> 'Config':
         """
         从 .env 文件加载配置
-        
+
         加载优先级：
         1. 系统环境变量
         2. .env 文件
@@ -334,26 +364,26 @@ class Config:
                 os.environ['HTTPS_PROXY'] = https_proxy
                 os.environ['https_proxy'] = https_proxy
 
-        
+
         # 解析自选股列表（逗号分隔）
         stock_list_str = os.getenv('STOCK_LIST', '')
         stock_list = [
-            code.strip() 
-            for code in stock_list_str.split(',') 
+            code.strip()
+            for code in stock_list_str.split(',')
             if code.strip()
         ]
-        
-        # 如果没有配置，使用默认的示例股票
+
+        # 如果没有配置，随机选择100只中国A股
         if not stock_list:
-            stock_list = ['600519', '000001', '300750']
-        
+            stock_list = _get_random_china_stocks()
+
         # 解析搜索引擎 API Keys（支持多个 key，逗号分隔）
         bocha_keys_str = os.getenv('BOCHA_API_KEYS', '')
         bocha_api_keys = [k.strip() for k in bocha_keys_str.split(',') if k.strip()]
-        
+
         tavily_keys_str = os.getenv('TAVILY_API_KEYS', '')
         tavily_api_keys = [k.strip() for k in tavily_keys_str.split(',') if k.strip()]
-        
+
         serpapi_keys_str = os.getenv('SERPAPI_API_KEYS', '')
         serpapi_keys = [k.strip() for k in serpapi_keys_str.split(',') if k.strip()]
 
@@ -369,7 +399,7 @@ class Config:
         else:
             # 未显式配置时，根据消息类型选择默认字节数
             wechat_max_bytes = 2048 if wechat_msg_type_lower == 'text' else 4000
-        
+
         return cls(
             stock_list=stock_list,
             feishu_app_id=os.getenv('FEISHU_APP_ID'),
@@ -491,7 +521,7 @@ class Config:
             realtime_cache_ttl=int(os.getenv('REALTIME_CACHE_TTL', '600')),
             circuit_breaker_cooldown=int(os.getenv('CIRCUIT_BREAKER_COOLDOWN', '300'))
         )
-    
+
     @classmethod
     def _parse_stock_email_groups(cls) -> List[Tuple[List[str], List[str]]]:
         """
@@ -557,7 +587,7 @@ class Config:
     def refresh_stock_list(self) -> None:
         """
         热读取 STOCK_LIST 环境变量并更新配置中的自选股列表
-        
+
         支持两种配置方式：
         1. .env 文件（本地开发、定时任务模式） - 修改后下次执行自动生效
         2. 系统环境变量（GitHub Actions、Docker） - 启动时固定，运行中不变
@@ -582,25 +612,26 @@ class Config:
             if code.strip()
         ]
 
-        if not stock_list:        
-            stock_list = ['000001']
+        if not stock_list:
+            stock_list = _get_random_china_stocks()
 
         self.stock_list = stock_list
-    
+
     def validate(self) -> List[str]:
         """
         验证配置完整性
-        
+
         Returns:
             缺失或无效配置项的警告列表
         """
         warnings = []
-        
+
         if not self.stock_list:
             warnings.append("警告：未配置自选股列表 (STOCK_LIST)")
-        
+
         if not self.tushare_token:
             warnings.append("提示：未配置 Tushare Token，将使用其他数据源")
+<<<<<<< HEAD
         
         if not self.gemini_api_key and not self.anthropic_api_key and not self.openai_api_key:
             warnings.append("警告：未配置 Gemini/Anthropic/OpenAI API Key，AI 分析功能将不可用")
@@ -610,6 +641,17 @@ class Config:
         if not self.bocha_api_keys and not self.tavily_api_keys and not self.brave_api_keys and not self.serpapi_keys:
             warnings.append("提示：未配置搜索引擎 API Key (Bocha/Tavily/Brave/SerpAPI)，新闻搜索功能将不可用")
         
+=======
+
+        if not self.gemini_api_key and not self.openai_api_key:
+            warnings.append("警告：未配置 Gemini 或 OpenAI API Key，AI 分析功能将不可用")
+        elif not self.gemini_api_key:
+            warnings.append("提示：未配置 Gemini API Key，将使用 OpenAI 兼容 API")
+
+        if not self.bocha_api_keys and not self.tavily_api_keys and not self.serpapi_keys:
+            warnings.append("提示：未配置搜索引擎 API Key (Bocha/Tavily/SerpAPI)，新闻搜索功能将不可用")
+
+>>>>>>> e2f1d0b (feat: random select.)
         # 检查通知配置
         has_notification = (
             self.wechat_webhook_url or
@@ -625,13 +667,13 @@ class Config:
         )
         if not has_notification:
             warnings.append("提示：未配置通知渠道，将不发送推送通知")
-        
+
         return warnings
-    
+
     def get_db_url(self) -> str:
         """
         获取 SQLAlchemy 数据库连接 URL
-        
+
         自动创建数据库目录（如果不存在）
         """
         db_path = Path(self.database_path)
@@ -653,7 +695,7 @@ if __name__ == "__main__":
     print(f"数据库路径: {config.database_path}")
     print(f"最大并发数: {config.max_workers}")
     print(f"调试模式: {config.debug}")
-    
+
     # 验证配置
     warnings = config.validate()
     if warnings:
