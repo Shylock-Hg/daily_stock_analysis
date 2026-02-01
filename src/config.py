@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import List, Optional
 from dotenv import load_dotenv, dotenv_values
 from dataclasses import dataclass, field
+import random
+import akshare as ak
 
 
 def setup_env():
@@ -22,6 +24,14 @@ def setup_env():
     # src/config.py -> src/ -> root
     env_path = Path(__file__).parent.parent / '.env'
     load_dotenv(dotenv_path=env_path)
+
+def _get_random_china_stocks(count: int = 100) -> List[str]:
+    """获取随机的中国A股股票代码列表"""
+    all_stocks_df = ak.stock_info_a_code_name()
+    all_stocks_df = all_stocks_df[~all_stocks_df['code'].str.startswith('4')]  # 剔除两网及退市（4开头）
+    all_stocks_df = all_stocks_df[~all_stocks_df['code'].str.startswith('8')]  # 剔除北交所部分（可选）
+    all_stock_codes = all_stocks_df['code'].tolist()
+    return random.sample(all_stock_codes, count)
 
 
 @dataclass
