@@ -42,7 +42,7 @@ from bot.models import BotMessage
 
 logger = logging.getLogger(__name__)
 
-topK = 2
+topK = 1
 
 class NotificationChannel(Enum):
     """通知渠道类型"""
