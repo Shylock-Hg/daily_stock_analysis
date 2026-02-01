@@ -28,7 +28,7 @@ def setup_env():
 
 def _get_random_china_stocks(count: int = 100) -> List[str]:
     """获取随机的中国A股股票代码列表"""
-    try
+    try:
         all_stocks_df = ak.stock_info_a_code_name()
         all_stocks_df = all_stocks_df[~all_stocks_df['code'].str.startswith('4')]  # 剔除两网及退市（4开头）
         all_stocks_df = all_stocks_df[~all_stocks_df['code'].str.startswith('8')]  # 剔除北交所部分（可选）
