@@ -42,6 +42,7 @@ from bot.models import BotMessage
 
 logger = logging.getLogger(__name__)
 
+topK = 3
 
 class NotificationChannel(Enum):
     """通知渠道类型"""
@@ -359,7 +360,7 @@ class NotificationService:
         ]
 
         # 按评分排序（高分在前）
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:5]
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
         results = sorted_results
 
         # 统计信息 - 使用 decision_type 字段准确统计
@@ -566,7 +567,7 @@ class NotificationService:
             report_date = datetime.now().strftime('%Y-%m-%d')
 
         # 按评分排序（高分在前）
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:5]
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
         results = sorted_results
 
         # 统计信息 - 使用 decision_type 字段准确统计
@@ -841,28 +842,16 @@ class NotificationService:
             精简版决策仪表盘
         """
         report_date = datetime.now().strftime('%Y-%m-%d')
-<<<<<<< HEAD
 
         # 按评分排序
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
 
         # 统计 - 使用 decision_type 字段准确统计
         buy_count = sum(1 for r in results if getattr(r, 'decision_type', '') == 'buy')
         sell_count = sum(1 for r in results if getattr(r, 'decision_type', '') == 'sell')
         hold_count = sum(1 for r in results if getattr(r, 'decision_type', '') in ('hold', ''))
 
-=======
-
-        # 按评分排序（高分在前）
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:5]
-        results = sorted_results
-
-        # 统计
-        buy_count = sum(1 for r in results if r.operation_advice in ['买入', '加仓', '强烈买入'])
-        sell_count = sum(1 for r in results if r.operation_advice in ['卖出', '减仓', '强烈卖出'])
-        hold_count = sum(1 for r in results if r.operation_advice in ['持有', '观望'])
-
->>>>>>> f83438a (feat: report top 5 only.)
         lines = [
             f"## 🎯 {report_date} 决策仪表盘",
             "",
@@ -989,7 +978,7 @@ class NotificationService:
         report_date = datetime.now().strftime('%Y-%m-%d')
 
         # 按评分排序（高分在前）
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:5]
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
         results = sorted_results
 
         # 统计 - 使用 decision_type 字段准确统计

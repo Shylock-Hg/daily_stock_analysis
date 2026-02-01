@@ -26,7 +26,7 @@ def setup_env():
     env_path = Path(__file__).parent.parent / '.env'
     load_dotenv(dotenv_path=env_path)
 
-def _get_random_china_stocks(count: int = 100) -> List[str]:
+def _get_random_china_stocks(count: int = 30) -> List[str]:
     """获取随机的中国A股股票代码列表"""
     try:
         all_stocks_df = ak.stock_info_a_code_name()
@@ -453,7 +453,7 @@ class Config:
 
         if not stock_list or len(stock_list) == 0:
             print("DEBUG POINT: refresh_stock_list from random (100 stocks)")
-            stock_list = _get_random_china_stocks(100)
+            stock_list = _get_random_china_stocks()
 
         self.stock_list = stock_list
 
