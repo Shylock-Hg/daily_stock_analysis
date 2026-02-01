@@ -438,8 +438,9 @@ class Config:
             if code.strip()
         ]
 
-        if not stock_list:
-            stock_list = ['000001']
+        if not stock_list or len(stock_list) == 0:
+            print("DEBUG POINT: refresh_stock_list from random")
+            stock_list = _get_random_china_stocks()
 
         self.stock_list = stock_list
 
