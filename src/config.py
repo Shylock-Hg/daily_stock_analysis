@@ -452,8 +452,8 @@ class Config:
         ]
 
         if not stock_list or len(stock_list) == 0:
-            print("DEBUG POINT: refresh_stock_list from random")
-            stock_list = _get_random_china_stocks()
+            print("DEBUG POINT: refresh_stock_list from random (100 stocks)")
+            stock_list = _get_random_china_stocks(100)
 
         self.stock_list = stock_list
 
