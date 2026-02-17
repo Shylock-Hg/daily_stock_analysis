@@ -31,6 +31,8 @@ from email.header import Header
 from email.utils import formataddr
 from enum import Enum
 
+topK = 1
+
 import requests
 try:
     import discord
@@ -428,11 +430,8 @@ class NotificationService:
         ]
         
         # 按评分排序（高分在前）
-        sorted_results = sorted(
-            results, 
-            key=lambda x: x.sentiment_score, 
-            reverse=True
-        )
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
         
         # 统计信息 - 使用 decision_type 字段准确统计
         buy_count = sum(1 for r in results if getattr(r, 'decision_type', '') == 'buy')
@@ -691,7 +690,8 @@ class NotificationService:
             report_date = datetime.now().strftime('%Y-%m-%d')
 
         # 按评分排序（高分在前）
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
 
         # 统计信息 - 使用 decision_type 字段准确统计
         buy_count = sum(1 for r in results if getattr(r, 'decision_type', '') == 'buy')
@@ -953,7 +953,8 @@ class NotificationService:
         report_date = datetime.now().strftime('%Y-%m-%d')
         
         # 按评分排序
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
         
         # 统计 - 使用 decision_type 字段准确统计
         buy_count = sum(1 for r in results if getattr(r, 'decision_type', '') == 'buy')
@@ -1094,7 +1095,8 @@ class NotificationService:
         report_date = datetime.now().strftime('%Y-%m-%d')
 
         # 按评分排序
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
 
         # 统计 - 使用 decision_type 字段准确统计
         buy_count = sum(1 for r in results if getattr(r, 'decision_type', '') == 'buy')
