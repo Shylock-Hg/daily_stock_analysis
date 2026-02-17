@@ -16,6 +16,9 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 from dotenv import load_dotenv, dotenv_values
 from dataclasses import dataclass, field
+import random
+import akshare as ak
+import pickle
 
 
 def setup_env(override: bool = False):
@@ -35,6 +38,19 @@ def setup_env(override: bool = False):
     else:
         env_path = Path(__file__).parent.parent / '.env'
     load_dotenv(dotenv_path=env_path, override=override)
+
+def _get_random_china_stocks(count: int = 10) -> List[str]:
+    """获取随机的中国A股股票代码列表"""
+    try:
+        all_stocks_df = ak.stock_info_a_code_name()
+        all_stocks_df = all_stocks_df[~all_stocks_df['code'].str.startswith('4')]  # 剔除两网及退市（4开头）
+        all_stocks_df = all_stocks_df[~all_stocks_df['code'].str.startswith('8')]  # 剔除北交所部分（可选）
+        all_stock_codes = all_stocks_df['code'].tolist()
+    except Exception as e:
+        print(f"akshare获取股票列表失败: {e}, load from local file.")
+        with open(Path(__file__).parent.parent / "stock_list", "rb") as f:
+            all_stock_codes = pickle.load(f)
+    return random.sample(all_stock_codes, count)
 
 
 @dataclass
@@ -352,9 +368,11 @@ class Config:
             if (c or "").strip()
         ]
         
-        # 如果没有配置，使用默认的示例股票
-        if not stock_list:
-            stock_list = ['600519', '000001', '300750']
+        print("DEBUG POINT: stock_list from env: ", stock_list)
+        # 如果没有配置，随机选择100只中国A股
+        if not stock_list or len(stock_list) == 0:
+            stock_list = _get_random_china_stocks()
+            print("DEBUG POINT: stock_list from random: ", stock_list)
         
         # 解析搜索引擎 API Keys（支持多个 key，逗号分隔）
         bocha_keys_str = os.getenv('BOCHA_API_KEYS', '')
@@ -611,8 +629,9 @@ class Config:
             if (c or "").strip()
         ]
 
-        if not stock_list:
-            stock_list = ['000001']
+        if not stock_list or len(stock_list) == 0:
+            print("DEBUG POINT: refresh_stock_list from random (100 stocks)")
+            stock_list = _get_random_china_stocks()
 
         self.stock_list = stock_list
     
