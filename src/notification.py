@@ -22,6 +22,7 @@ from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING
 from enum import Enum
 
 from src.config import Config, get_config
+topK = 1
 from src.enums import ReportType
 from src.notification_routing import (
     get_notification_route_config,
@@ -655,11 +656,8 @@ class NotificationService(
         ]
         
         # 按评分排序（高分在前）
-        sorted_results = sorted(
-            results, 
-            key=lambda x: x.sentiment_score, 
-            reverse=True
-        )
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
         
         # 统计信息 - 使用 decision_type 字段准确统计
         buy_count = sum(1 for r in results if getattr(r, 'decision_type', '') == 'buy')
@@ -912,7 +910,8 @@ class NotificationService(
             report_date = datetime.now().strftime('%Y-%m-%d')
 
         # 按评分排序（高分在前）
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
 
         # 统计信息 - 使用 decision_type 字段准确统计
         buy_count = sum(1 for r in results if getattr(r, 'decision_type', '') == 'buy')
@@ -1197,7 +1196,8 @@ class NotificationService(
         report_date = datetime.now().strftime('%Y-%m-%d')
         
         # 按评分排序
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
         
         # 统计 - 使用 decision_type 字段准确统计
         buy_count = sum(1 for r in results if getattr(r, 'decision_type', '') == 'buy')
@@ -1347,7 +1347,8 @@ class NotificationService(
         labels = get_report_labels(report_language)
 
         # 按评分排序
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
 
         # 统计 - 使用 decision_type 字段准确统计
         buy_count = sum(1 for r in results if getattr(r, 'decision_type', '') == 'buy')
