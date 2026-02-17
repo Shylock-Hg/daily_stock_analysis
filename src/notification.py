@@ -24,6 +24,7 @@ from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING
 from enum import Enum
 
 from src.config import Config, get_config
+topK = 1
 from src.enums import ReportType
 from src.market_phase_summary import format_public_market_status_line, format_public_phase_pack_excerpt
 from src.notification_routing import (
@@ -934,7 +935,8 @@ class NotificationService(
             results,
             key=lambda x: x.sentiment_score,
             reverse=True
-        )
+        )[:topK]
+        results = sorted_results
 
         buy_count, sell_count, hold_count = self._count_display_decisions(results, report_language)
         avg_score = sum(r.sentiment_score for r in results) / len(results) if results else 0
@@ -1305,7 +1307,8 @@ class NotificationService(
             report_date = datetime.now().strftime('%Y-%m-%d')
 
         # 按评分排序（高分在前）
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
 
         buy_count, sell_count, hold_count = self._count_display_decisions(results, report_language)
 
@@ -1651,7 +1654,8 @@ class NotificationService(
         report_date = datetime.now().strftime('%Y-%m-%d')
 
         # 按评分排序
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
 
         buy_count, sell_count, hold_count = self._count_display_decisions(results, report_language)
 
@@ -1831,7 +1835,8 @@ class NotificationService(
         labels = get_report_labels(report_language)
 
         # 按评分排序
-        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)
+        sorted_results = sorted(results, key=lambda x: x.sentiment_score, reverse=True)[:topK]
+        results = sorted_results
 
         buy_count, sell_count, hold_count = self._count_display_decisions(results, report_language)
         avg_score = sum(r.sentiment_score for r in results) / len(results) if results else 0

@@ -20,6 +20,9 @@ from typing import Any, Dict, List, Literal, Optional, Tuple
 from urllib.parse import unquote, urlparse
 from dotenv import load_dotenv, dotenv_values
 from dataclasses import dataclass, field
+import random
+import akshare as ak
+import pickle
 
 from src.core.config_manager import unescape_compose_sensitive_env_value
 from src.report_language import (
@@ -857,6 +860,19 @@ def setup_env(override: bool = False):
             "" if raw_value is None else str(raw_value),
         )
 
+def _get_random_china_stocks(count: int = 10) -> List[str]:
+    """获取随机的中国A股股票代码列表"""
+    try:
+        all_stocks_df = ak.stock_info_a_code_name()
+        all_stocks_df = all_stocks_df[~all_stocks_df['code'].str.startswith('4')]  # 剔除两网及退市（4开头）
+        all_stocks_df = all_stocks_df[~all_stocks_df['code'].str.startswith('8')]  # 剔除北交所部分（可选）
+        all_stock_codes = all_stocks_df['code'].tolist()
+    except Exception as e:
+        print(f"akshare获取股票列表失败: {e}, load from local file.")
+        with open(Path(__file__).parent.parent / "stock_list", "rb") as f:
+            all_stock_codes = pickle.load(f)
+    return random.sample(all_stock_codes, count)
+
 
 @dataclass
 class Config:
@@ -1441,6 +1457,12 @@ class Config:
             for c in split_stock_list(stock_list_str)
             if (c or "").strip()
         ]
+        
+        print("DEBUG POINT: stock_list from env: ", stock_list)
+        # 如果没有配置，随机选择100只中国A股
+        if not stock_list or len(stock_list) == 0:
+            stock_list = _get_random_china_stocks()
+            print("DEBUG POINT: stock_list from random: ", stock_list)
         
         # === LiteLLM multi-key parsing ===
         # GEMINI_API_KEYS (comma-separated) > GEMINI_API_KEY (single)
@@ -3065,6 +3087,10 @@ class Config:
             for c in split_stock_list(stock_list_str)
             if (c or "").strip()
         ]
+
+        if not stock_list or len(stock_list) == 0:
+            print("DEBUG POINT: refresh_stock_list from random (100 stocks)")
+            stock_list = _get_random_china_stocks()
 
         self.stock_list = stock_list
     
