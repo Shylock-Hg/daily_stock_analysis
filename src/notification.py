@@ -148,6 +148,7 @@ class NotificationService(
         """
         config = get_config()
         self._config = config
+        topK = config.topK
         self._source_message = source_message
         self._context_channels: List[str] = []
 
@@ -220,6 +221,7 @@ class NotificationService(
     def _get_history_compare_context(self, results: List[AnalysisResult]) -> Dict[str, Any]:
         """Fetch and cache history comparison data for markdown rendering."""
         config = get_config()
+        topK = config.topK
         history_compare_n = getattr(config, 'report_history_compare_n', 0)
         if history_compare_n <= 0 or not results:
             return {"history_by_code": {}}
@@ -528,6 +530,7 @@ class NotificationService(
             
             from src.config import get_config
             config = get_config()
+            topK = config.topK
             
             app_id = getattr(config, 'feishu_app_id', None)
             app_secret = getattr(config, 'feishu_app_secret', None)
@@ -891,6 +894,7 @@ class NotificationService(
         ma_label = "Moving Averages" if report_language == "en" else "均线"
         volume_analysis_label = "Volume" if report_language == "en" else "量能"
         news_heading = "News Flow" if report_language == "en" else "消息面"
+        topK = config.topK
         if getattr(config, 'report_renderer_enabled', False) and results:
             from src.services.report_renderer import render
             out = render(
@@ -1181,6 +1185,7 @@ class NotificationService(
         config = get_config()
         report_language = self._get_report_language(results)
         labels = get_report_labels(report_language)
+        topK = config.topK
         if getattr(config, 'report_renderer_enabled', False) and results:
             from src.services.report_renderer import render
             out = render(
@@ -1428,6 +1433,7 @@ class NotificationService(
         report_language = self._get_report_language(results)
         labels = get_report_labels(report_language)
         config = get_config()
+        topK = config.topK
         if getattr(config, 'report_renderer_enabled', False) and results:
             from src.services.report_renderer import render
             out = render(
