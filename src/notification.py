@@ -120,6 +120,7 @@ class NotificationService(
         检测所有已配置的渠道，推送时会向所有渠道发送
         """
         config = get_config()
+        topK = config.topK
         self._source_message = source_message
         self._context_channels: List[str] = []
 
@@ -168,6 +169,7 @@ class NotificationService(
     def _get_history_compare_context(self, results: List[AnalysisResult]) -> Dict[str, Any]:
         """Fetch and cache history comparison data for markdown rendering."""
         config = get_config()
+        topK = config.topK
         history_compare_n = getattr(config, 'report_history_compare_n', 0)
         if history_compare_n <= 0 or not results:
             return {"history_by_code": {}}
@@ -387,6 +389,7 @@ class NotificationService(
             
             from src.config import get_config
             config = get_config()
+            topK = config.topK
             
             app_id = getattr(config, 'feishu_app_id', None)
             app_secret = getattr(config, 'feishu_app_secret', None)
@@ -769,6 +772,7 @@ class NotificationService(
             Markdown 格式的决策仪表盘日报
         """
         config = get_config()
+        topK = config.topK
         if getattr(config, 'report_renderer_enabled', False) and results:
             from src.services.report_renderer import render
             out = render(
@@ -1046,6 +1050,7 @@ class NotificationService(
             精简版决策仪表盘
         """
         config = get_config()
+        topK = config.topK
         if getattr(config, 'report_renderer_enabled', False) and results:
             from src.services.report_renderer import render
             out = render(
@@ -1280,6 +1285,7 @@ class NotificationService(
         if report_date is None:
             report_date = datetime.now().strftime('%Y-%m-%d')
         config = get_config()
+        topK = config.topK
         if getattr(config, 'report_renderer_enabled', False) and results:
             from src.services.report_renderer import render
             out = render(

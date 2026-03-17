@@ -270,6 +270,8 @@ class Config:
     - 所有配置项从环境变量读取，支持默认值
     - 类方法 get_instance() 实现单例访问
     """
+
+    topK: int = 1
     
     # === 自选股配置 ===
     stock_list: List[str] = field(default_factory=list)
@@ -688,12 +690,16 @@ class Config:
             for c in stock_list_str.split(',')
             if (c or "").strip()
         ]
+
+        topK = 1
         
         print("DEBUG POINT: stock_list from env: ", stock_list)
         # 如果没有配置，随机选择100只中国A股
         if not stock_list or len(stock_list) == 0:
             stock_list = _get_random_china_stocks()
             print("DEBUG POINT: stock_list from random: ", stock_list)
+        else:
+            topK = len(stock_list)
         
         # === LiteLLM multi-key parsing ===
         # GEMINI_API_KEYS (comma-separated) > GEMINI_API_KEY (single)
@@ -854,6 +860,7 @@ class Config:
             wechat_max_bytes = 2048 if wechat_msg_type_lower == 'text' else 4000
         
         return cls(
+            topK=topK,
             stock_list=stock_list,
             feishu_app_id=os.getenv('FEISHU_APP_ID'),
             feishu_app_secret=os.getenv('FEISHU_APP_SECRET'),
@@ -1427,6 +1434,8 @@ class Config:
             env_values = dotenv_values(env_path)
             stock_list_str = (env_values.get('STOCK_LIST') or '').strip()
 
+        topK = 1
+
         # 如果 .env 文件不存在或未配置，才尝试从系统环境变量读取
         if not stock_list_str:
             stock_list_str = os.getenv('STOCK_LIST', '')
@@ -1440,7 +1449,10 @@ class Config:
         if not stock_list or len(stock_list) == 0:
             print("DEBUG POINT: refresh_stock_list from random (100 stocks)")
             stock_list = _get_random_china_stocks()
+        else:
+            topK = len(stock_list)
 
+        self.topK = topK
         self.stock_list = stock_list
     
     def validate_structured(self) -> List[ConfigIssue]:
